@@ -15,3 +15,23 @@ print(merged_table4.columns);
 #print(table2.columns);
 #print(merged_table.columns);
 
+df = pd.DataFrame(merged_table4)
+df.to_csv("/Users/ofri.geva/Desktop/eyeDiseases&SocioeconomicStatus/mergedTable.csv", index = False)
+data = pd.read_csv("/Users/ofri.geva/Desktop/eyeDiseases&SocioeconomicStatus/mergedTable.csv")
+print("Script is running...")
+X = data.drop(columns=['Prevalence'])
+X = X.select_dtypes(include=[np.number])  #only keep numerical columns
+y = data['Prevalence']
+
+# split up data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train the model
+regressor = DecisionTreeRegressor(random_state=42) #this tells python to use the same "seed" for randomness every time 
+#^(like in R, if you want to produce the same list of random numbers every time you run your code, you would use a seed)
+regressor.fit(X_train, y_train)
+
+# Make predictions and evaluate
+y_pred = regressor.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error: {mse}")
