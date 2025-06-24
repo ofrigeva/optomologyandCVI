@@ -35,14 +35,14 @@ X = X.select_dtypes(include=[np.number])  #only keep numerical columns
 y = data['Prevalence']
 
 #test different train/test splits and track the best performing model
-best_mse = float('inf')
+best_mse = float('inf') #setting the 'best' to a very high number (infinity) so that it is gaurenteed that the actal best is less than the default value
 best_split = None
 best_model = None
 
 split_ratios = [0.1, 0.2, 0.3, 0.4, 0.5]
 
 print("\nTesting different train/test splits (with max_leaf_nodes=5):")
-for test_size in split_ratios:
+for test_size in split_ratios: 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
     model = DecisionTreeRegressor(max_leaf_nodes=5, random_state=42)
     model.fit(X_train, y_train)
@@ -50,7 +50,7 @@ for test_size in split_ratios:
     mse = mean_squared_error(y_test, y_pred)
     print(f"Test size = {int(test_size*100)}% --> MSE: {mse:.4f}")
     
-    if mse < best_mse:
+    if mse < best_mse: #update the lowest mse with the best_mse
         best_mse = mse
         best_split = test_size
         best_model = model
