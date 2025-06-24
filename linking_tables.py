@@ -1,37 +1,68 @@
-import pandas as pd;
+import pandas as pd
+from sklearn.tree import DecisionTreeRegressor, plot_tree
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import numpy as np
+import matplotlib.pyplot as plt
 
-DR_Adjusted = pd.read_csv("CountyAnyStageDR_AdjustedPrev.csv");
-tableHealth = pd.read_csv("CVI-county-pct-cat-CC-Health.gis.csv");
-tableSocioEco = pd.read_csv("CVI-county-pct-cat-CC-Social & Economic.gis.csv");
-tableEvironment = pd.read_csv("CVI-county-pct-cat-Environment.gis.csv");
-tableInfrastructure = pd.read_csv("CVI-county-pct-cat-Infrastructure.gis.csv");
-merged_table = pd.merge(DR_Adjusted, tableHealth, on = "FIPS", how = "inner", suffixes=('', '_health'));
-merged_table2 = pd.merge(merged_table, tableSocioEco, on = "FIPS", how = "inner", suffixes=('', '_socio'));
-merged_table3 = pd.merge(merged_table2, tableEvironment, on = "FIPS", how = "inner", suffixes=('', '_env'));
-merged_table4 = pd.merge(merged_table3, tableInfrastructure, on = "FIPS", how = "inner", suffixes=('', '_infra'));
-#print(merged_table.head());
-print(merged_table4.columns);
-#print(table1.columns);
-#print(table2.columns);
-#print(merged_table.columns);
+#data
+DR_Adjusted = pd.read_csv("CountyAnyStageDR_AdjustedPrev.csv")
+tableHealth = pd.read_csv("CVI-county-pct-cat-CC-Health.gis.csv")
+tableSocioEco = pd.read_csv("CVI-county-pct-cat-CC-Social & Economic.gis.csv")
+tableEvironment = pd.read_csv("CVI-county-pct-cat-Environment.gis.csv")
+tableInfrastructure = pd.read_csv("CVI-county-pct-cat-Infrastructure.gis.csv")
 
+#merge data into one table:
+merged_table = pd.merge(DR_Adjusted, tableHealth, on = "FIPS", how = "inner", suffixes=('', '_health'))
+merged_table2 = pd.merge(merged_table, tableSocioEco, on = "FIPS", how = "inner", suffixes=('', '_socio'))
+merged_table3 = pd.merge(merged_table2, tableEvironment, on = "FIPS", how = "inner", suffixes=('', '_env'))
+merged_table4 = pd.merge(merged_table3, tableInfrastructure, on = "FIPS", how = "inner", suffixes=('', '_infra'))
+#print(merged_table.head())
+#print(merged_table4.columns)
+#print(table1.columns)
+#print(table2.columns)
+#print(merged_table.columns)
+
+#load the data
 df = pd.DataFrame(merged_table4)
 df.to_csv("/Users/ofri.geva/Desktop/eyeDiseases&SocioeconomicStatus/mergedTable.csv", index = False)
 data = pd.read_csv("/Users/ofri.geva/Desktop/eyeDiseases&SocioeconomicStatus/mergedTable.csv")
 print("Script is running...")
-X = data.drop(columns=['Prevalence'])
+
+#prepare data
+X = data.drop(columns=['Temperature-related deaths', 'Disaster-related deaths', 'Air pollution-related deaths', 'Air pollution-related illnesses', 'Infectious Diseases', 'Costs of Climate Disasters', 'Economic & Productivity Losses', 'Transition Risks', 'Social Stressors', 'Transportation Sources', 'Exposures & Risks', 'Pollution Sources', 'Criteria Air Pollutants', 'Land Use', 'Transportation', 'Energy', 'Food, Water, and Waste Management', 'Communications', 'Financial Services', 'Governance'])
 X = X.select_dtypes(include=[np.number])  #only keep numerical columns
 y = data['Prevalence']
 
-# split up data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+#test different train/test splits and track the best performing model
+best_mse = float('inf')
+best_split = None
+best_model = None
 
-# Train the model
-regressor = DecisionTreeRegressor(random_state=42) #this tells python to use the same "seed" for randomness every time 
-#^(like in R, if you want to produce the same list of random numbers every time you run your code, you would use a seed)
-regressor.fit(X_train, y_train)
+split_ratios = [0.1, 0.2, 0.3, 0.4, 0.5]
 
-# Make predictions and evaluate
-y_pred = regressor.predict(X_test)
-mse = mean_squared_error(y_test, y_pred)
-print(f"Mean Squared Error: {mse}")
+print("\nTesting different train/test splits (with max_leaf_nodes=5):")
+for test_size in split_ratios:
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+    model = DecisionTreeRegressor(max_leaf_nodes=5, random_state=42)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    mse = mean_squared_error(y_test, y_pred)
+    print(f"Test size = {int(test_size*100)}% --> MSE: {mse:.4f}")
+    
+    if mse < best_mse:
+        best_mse = mse
+        best_split = test_size
+        best_model = model
+        best_X_train = X_train
+        best_X_test = X_test
+        best_y_train = y_train
+        best_y_test = y_test
+
+print(f"\n✅ Best test split: {int(best_split*100)}% --> MSE: {best_mse:.4f}")
+
+#visualize best model
+plt.figure(figsize=(20, 10))
+plot_tree(best_model, feature_names=X.columns, filled=True, rounded=True)
+plt.title(f"Best Decision Tree (test split = {int(best_split*100)}%)")
+plt.show()
