@@ -30,7 +30,7 @@ data = pd.read_csv("/Users/ofri.geva/Desktop/eyeDiseases&SocioeconomicStatus/mer
 print("Script is running...")
 
 #prepare data
-X = data.drop(columns=['Temperature-related deaths', 'Disaster-related deaths', 'Air pollution-related deaths', 'Air pollution-related illnesses', 'Infectious Diseases', 'Costs of Climate Disasters', 'Economic & Productivity Losses', 'Transition Risks', 'Social Stressors', 'Transportation Sources', 'Exposures & Risks', 'Pollution Sources', 'Criteria Air Pollutants', 'Land Use', 'Transportation', 'Energy', 'Food, Water, and Waste Management', 'Communications', 'Financial Services', 'Governance'])
+X = data[['Temperature-related deaths', 'Disaster-related deaths', 'Air pollution-related deaths', 'Air pollution-related illnesses', 'Infectious Diseases', 'Costs of Climate Disasters', 'Economic & Productivity Losses', 'Transition Risks', 'Social Stressors', 'Transportation Sources', 'Exposures & Risks', 'Pollution Sources', 'Criteria Air Pollutants', 'Land Use', 'Transportation', 'Energy', 'Food, Water, and Waste Management', 'Communications', 'Financial Services', 'Governance']]
 X = X.select_dtypes(include=[np.number])  #only keep numerical columns
 y = data['Prevalence']
 
