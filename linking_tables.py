@@ -63,6 +63,12 @@ print(f"\n✅ Best test split: {int(best_split*100)}% --> MSE: {best_mse:.4f}")
 
 #visualize best model
 plt.figure(figsize=(20, 10))
-plot_tree(best_model, feature_names=X.columns, filled=True, rounded=True)
+plot_tree(best_model, feature_names=X.columns, filled=True, rounded=True, impurity=False, proportion=False) 
+#^^best_model for splitting data, 
+#feature_names for columns, 
+#filled gives thr graph color, 
+#rounded rounds the corners of the boxes in the tree, 
+#impurity hides squared_error,
+#proportion=False hides sample proportion
 plt.title(f"Best Decision Tree (test split = {int(best_split*100)}%)")
 plt.show()
